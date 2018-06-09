@@ -1,0 +1,10 @@
+-i ./*.hbs -o ./ -d "Some Context"
+
+-i / -o / -d
+file masks from paths
+strings S - T - R - I - N - G - S You forgot about them. (!!!)
+paths
+
+1) One input many ouputs
+2) Many inputs - many ouputs
+3) One to one

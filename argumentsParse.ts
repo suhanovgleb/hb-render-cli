@@ -14,8 +14,25 @@ export function parseArgs(input: string[], output: string[], data: string[]) {
         process.exit(-2);
     }
 
-    argCheck(input);
-    argCheck(data);
+    if (input.length == 1) {
+        switch (argTypeCheck(input[0])) {
+            case 1:
+                
+                break;
+
+            case 2:
+                break;
+
+            case 3:
+                break;
+
+            default:
+                console.error('Error: Input sourse is not exists')
+        }
+    }
+    else {
+        // if it has many args
+    }
     
 }
 
@@ -36,30 +53,6 @@ function argTypeCheck(arg: string): number {
         return 0;
     }
 }
-
-function argCheck(arg) {
-    if (arg.length == 1) {
-        argTypeCheck(arg[0]);
-        switch (argTypeCheck(arg[0])) {
-            case 1:
-                
-                break;
-
-            case 2:
-                break;
-
-            case 3:
-                break;
-
-            default:
-                console.error('Error: Input sourse is not exists')
-        }
-    }
-    else {
-        // if it has many args
-    }
-}
-
 
 
 
