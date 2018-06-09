@@ -1,0 +1,27 @@
+{
+  "name": "hb-render-cli",
+  "version": "0.0.3",
+  "description": "Interpolate handlebars template via command line",
+  "main": "index.js",
+  "bin": {
+    "hb-render": "index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/command-line-args": "^5.0.0",
+    "@types/handlebars": "^4.0.37",
+    "@types/node": "^10.3.0",
+    "command-line-usage": "^5.0.5",
+    "typescript": "^2.9.1"
+  },
+  "dependencies": {
+    "command-line-args": "^5.0.2",
+    "handlebars": "^4.0.11"
+  }
+}
