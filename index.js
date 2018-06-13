@@ -2,7 +2,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const commandLineArgs = require("command-line-args");
-const argumentsParse_1 = require("./argumentsParse");
+const ap = require("./argumentsParse");
 const optionDefinitions = [
     { name: 'input', alias: 'i', multiple: true },
     { name: 'output', alias: 'o', multiple: true },
@@ -10,7 +10,8 @@ const optionDefinitions = [
 ];
 function main() {
     let options = commandLineArgs(optionDefinitions);
-    argumentsParse_1.parseArgs(options.input, options.output, options.data);
+    ap.parseArgs(options.input, options.output, options.data);
+    // ap.fromDir('./notes/q/*.txt');
     //let templateContents = fs.readFileSync(options.input).toString();
     //let template = handlebars.compile(templateContents);
     //let jsonData = JSON.parse(options.data);
