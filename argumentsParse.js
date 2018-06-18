@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
-const path = require("path");
+const glob = require("glob");
 function parseArgs(input, output, data) {
     //do we have an input?
     if ((input == undefined) || (input.length == 0)) {
@@ -13,145 +13,83 @@ function parseArgs(input, output, data) {
         console.error('Error: Data (-d) is missed.');
         process.exit(-2);
     }
-    if (input.length = 1) {
-        if ((input[0].startsWith('\'')) || input[0].startsWith('"')) {
-            console.log('input is string...');
-            // string processing
-        }
-        else if (input[0].includes('*') || input[0].includes('/')) {
-            fromDir(input[0]);
-        }
-        else {
-            console.log('input contains one raw filename');
-        }
+    console.log('initial args: ' + [...arguments]);
+    input = expandArgs(input);
+    console.log('expanded input: ' + input);
+    if (output != undefined && output.length != 0) {
+        output = expandArgs(output);
+        console.log('expanded output: ' + input);
     }
-    else {
-        console.log('input are contains ' + input.length + 'raw filenames...');
-        // filenames 
-    }
-    // if (input.length == 1) {
-    //     switch (argTypeCheck(input[0])) {
-    //         case 1:
-    //             break;
-    //         case 2:
-    //             break;
-    //         case 3:
-    //             break;
-    //         default:
-    //             console.error('Error: Input sourse is not exists')
-    //     }
-    // }
-    // else {
-    //     // if it has many args
-    // }
+    data = expandArgs(data);
+    console.log('expanded data: ' + input);
+    return { input: input, output: output, data: data };
 }
 exports.parseArgs = parseArgs;
-function argTypeCheck(arg) {
-    if (arg.includes('*')) {
-        // that's mask
-        return 1;
-    }
-    else if (arg.includes('/')) {
-        //that's dir
-        return 2;
-    }
-    else if (fs.existsSync(arg)) {
-        // that's file
-        return 3;
-    }
-    else {
-        return 0;
-    }
-}
-function fromDir(mask) {
-    if (mask.includes('*')) {
-        let filter = mask.substr(mask.lastIndexOf('/') + 1);
-        let startPath = mask.substr(0, mask.length - filter.length - 1);
-        if (!filter.startsWith('*')) {
-            console.error('Error: file mask should starts with *');
-            process.exit(-3);
-        }
-        else if (filter.split('*').length - 1 > 1) {
-            console.error('Error: file mask can\'t contain more than one *');
-            process.exit(-4);
-        }
-        else if (filter.startsWith('*')) {
-            filter = filter.slice(1);
-        }
-        if (startPath.length != 0) {
-            console.log('Starting from dir ' + startPath + '/');
-            if (!fs.existsSync(startPath)) {
-                console.log("no dir ", startPath);
-                return;
-            }
-            var files = fs.readdirSync(startPath);
-            for (var i = 0; i < files.length; i++) {
-                var filename = path.join(startPath, files[i]);
-                var stat = fs.lstatSync(filename);
-                if (stat.isDirectory()) {
-                    fromDir(mask); //recurse
+;
+function expandArgs(args) {
+    let typeCheck;
+    args.forEach(arg => {
+        if (fs.existsSync(arg)) {
+            if (fs.lstatSync(arg).isFile()) {
+                if (typeCheck == undefined) {
+                    typeCheck = 'file';
                 }
-                else if (filename.includes(filter)) {
-                    console.log('-- found: ', filename);
+                else if (typeCheck != 'file') {
+                    console.log('Error');
+                    process.exit(-3);
                 }
-                ;
+                console.log('it is file');
+                console.log('file: ' + arg);
+                return fileParse(arg);
+                let w = 2;
             }
-            ;
+            else if (fs.lstatSync(arg).isDirectory()) {
+                if (typeCheck == undefined) {
+                    typeCheck = 'directory';
+                }
+                else if (typeCheck != 'directory') {
+                    console.log('Error');
+                    process.exit(-4);
+                }
+                console.log('it is a directory');
+                console.log('dir: ' + arg);
+                dirParse(arg);
+            }
+        }
+        else if (arg.endsWith('*.ext') || glob.sync(arg, { nodir: true }).length != 0) {
+            if (typeCheck == undefined) {
+                typeCheck = 'mask';
+            }
+            else if (typeCheck != 'mask') {
+                console.log('Error');
+                process.exit(-5);
+            }
+            console.log(glob.sync(arg, { nodir: true }));
+            //return 3; // mask
         }
         else {
-            var files = fs.readdirSync(__dirname);
-            for (var i = 0; i < files.length; i++) {
-                var filename = path.join(startPath, files[i]);
-                var stat = fs.lstatSync(filename);
-                if (filename.includes(filter)) {
-                    console.log('-- found: ', filename);
-                }
-                ;
+            if (typeCheck == undefined) {
+                typeCheck = 'string';
             }
-            ;
+            else if (typeCheck != 'string') {
+                console.log('Error');
+                process.exit(-6);
+            }
+            console.log('it is a string');
+            console.log('string: ' + arg);
+            //return 4; // string
         }
-    }
-    else {
-        if (mask.length != 0) {
-            console.log('Starting from dir ' + mask + '/');
-            if (!fs.existsSync(mask)) {
-                console.log("no dir ", mask);
-                return;
-            }
-            var files = fs.readdirSync(mask);
-            for (var i = 0; i < files.length; i++) {
-                var filename = path.join(mask, files[i]);
-                var stat = fs.lstatSync(filename);
-                if (stat.isDirectory()) {
-                    fromDir(filename); //recurse
-                }
-                console.log('-- found: ', filename);
-            }
-            ;
-        }
-    }
+    });
+    return args;
 }
-exports.fromDir = fromDir;
-;
-// if ((output == undefined) || (output.length == 0)) {
-//     let lengthElement;
-//     if (input.length >= data.length) {
-//         lengthElement = input;
-//     }
-//     else {
-//         lengthElement = data;
-//     }
-//     output = input.map(el => {
-//         return el.concat('.test'); // TODO: change extension
-//     })
-//     console.log('You don\'t specify output names. Output files will have these names: ' + output);
-// }
-// if (output.length < input.length) {
-//     console.error('Error: You must pass as many or more outputs as there are inputs.');
-//     process.exit(-3);
-// }
-// if (output.length < data.length) {
-//     console.error('Error: You must pass as many or more outputs as there are data.');
-//     process.exit(-4);
-// }
+function fileParse(file) {
+    return fs.readFileSync(file).toString();
+}
+function dirParse(dir) {
+    return glob.sync(dir).forEach(file => {
+        fileParse(file);
+    });
+}
+function maskParse(file) {
+}
 //# sourceMappingURL=argumentsParse.js.map

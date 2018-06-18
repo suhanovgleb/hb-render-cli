@@ -15,12 +15,12 @@ const optionDefinitions: OptionDefinition[] = [
 function main(){
     let options = commandLineArgs(optionDefinitions);
     ap.parseArgs(options.input, options.output, options.data);
-    // ap.fromDir('./notes/q/*.txt');
-    //let templateContents = fs.readFileSync(options.input).toString();
-    //let template = handlebars.compile(templateContents);
-    //let jsonData = JSON.parse(options.data);
-    //let result = template(jsonData);
-    //fs.writeFileSync(options.output, result)
+    
+    // let templateContents = fs.readFileSync(options.input).toString();
+    // let template = handlebars.compile(templateContents);
+    // let jsonData = JSON.parse(options.data);
+    // let result = template(jsonData);
+    // fs.writeFileSync(options.output, result)
 }
 
 main();
