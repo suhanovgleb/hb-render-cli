@@ -2,9 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("fs");
 const glob = require("glob");
-function parseArgs(input, output, data) {
-    // let inputik = input.slice();
-    // inputik[0] = 'blah-blah';
+function parseArgs(input, output, data, force) {
     //do we have an input?
     if ((input == undefined) || (input.length == 0)) {
         console.error('Error: Input (-i) is missed.');
@@ -15,27 +13,78 @@ function parseArgs(input, output, data) {
         console.error('Error: Data (-d) is missed.');
         process.exit(-2);
     }
+    const inputInitial = input;
+    const outputInitial = output;
+    const dataInitial = data;
     console.log('initial args: ' + [...arguments]);
     input = expandArgs(input);
     console.log('expanded input: ' + input);
-    if (output != undefined && output.length != 0) {
-        output = expandArgs(output, true);
-        console.log('expanded output: ' + output);
-    }
     data = expandArgs(data);
     console.log('expanded data: ' + data);
-    if (input.length != data.length) {
+    if (output == undefined || output.length == 0) {
+        // TODO
     }
     else {
-        if (output.length < input.length) {
+        output = expandArgs(output, true, force);
+        console.log('expanded output: ' + output);
+        if (input.length == 1) {
+            if (data.length == 1) {
+                if (output.length == 1) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+            else {
+                if (data.length == output.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+        }
+        else {
+            if (data.length == 1) {
+                if (input.length == output.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+            else {
+                if (output.length == data.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
         }
     }
+    //TODO: check if output suits input or data
+    // if (input.length != data.length) {
+    //     if (input.length > data.length) {
+    //     }
+    //     else {
+    //     }
+    // }
+    // else {
+    //     if (output.length < input.length) {
+    //     }
+    // }
 }
 exports.parseArgs = parseArgs;
 ;
-function expandArgs(args, isOutput = false) {
+function expandArgs(args, isOutput = false, isForce = false) {
     let typeCheck;
-    if (isOutput) {
+    if (!isOutput) {
         for (let i = 0; i < args.length; i++) {
             let arg = args[i];
             if (arg.startsWith('\'')) {
@@ -52,13 +101,6 @@ function expandArgs(args, isOutput = false) {
             }
             else if (arg.includes('/')) {
                 if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
-                    if (typeCheck == undefined) {
-                        typeCheck = 'directory';
-                    }
-                    else if (typeCheck != 'directory') {
-                        console.error('Error, all arguments must be of the same type.');
-                        process.exit(-4);
-                    }
                     console.log('it is a directory');
                     //console.log('dir: ' + arg);
                     args = dirParse(arg);
@@ -71,13 +113,6 @@ function expandArgs(args, isOutput = false) {
             }
             else if (arg.includes('*')) {
                 if (glob.sync(arg, { nodir: true }).length != 0) {
-                    if (typeCheck == undefined) {
-                        typeCheck = 'mask';
-                    }
-                    else if (typeCheck != 'mask') {
-                        console.error('Error, all arguments must be of the same type.');
-                        process.exit(-5);
-                    }
                     console.log('its mask');
                     args = maskParse(arg);
                     return args;
@@ -157,67 +192,6 @@ function expandArgs(args, isOutput = false) {
             }
         }
     }
-    //     if (fs.existsSync(arg)) {
-    //         if (fs.lstatSync(arg).isFile()) {
-    //             if (typeCheck == undefined) {
-    //                 typeCheck = 'file';
-    //             }
-    //             else if (typeCheck != 'file') {
-    //                 console.log('Error');
-    //                 process.exit(-3);
-    //             }
-    //             console.log('it is file');
-    //             console.log('file: ' + arg);
-    //             args[i] = fileParse(arg);
-    //         }
-    //         else if (fs.lstatSync(arg).isDirectory()) {
-    //             if (typeCheck == undefined) {
-    //                 typeCheck = 'directory';
-    //             }
-    //             else if (typeCheck != 'directory') {
-    //                 console.log('Error');
-    //                 process.exit(-4);
-    //             }
-    //             console.log('it is a directory');
-    //             console.log('dir: ' + arg);
-    //             args = dirParse(arg);
-    //             return;
-    //         }
-    //     }
-    //     else if (arg.endsWith('*.ext')) {
-    //         if (glob.sync(arg, { nodir: true }).length != 0) {
-    //             if (typeCheck == undefined) {
-    //                 typeCheck = 'mask';
-    //             }
-    //             else if (typeCheck != 'mask') {
-    //                 console.log('Error');
-    //                 process.exit(-5);
-    //             }
-    //             args = maskParse(arg);
-    //             return;
-    //             // console.log(glob.sync(arg, { nodir: true }));
-    //         }
-    //         else {
-    //             console.log('Error');
-    //             process.exit(-8);
-    //         }
-    //     }
-    //     else if (arg.startsWith('\'')) {
-    //         if (typeCheck == undefined) {
-    //             typeCheck = 'string';
-    //         }
-    //         else if (typeCheck != 'string') {
-    //             console.log('Error');
-    //             process.exit(-6);
-    //         }
-    //         console.log('it is a string');
-    //         console.log('string: ' + arg);
-    //         args[i] = arg;
-    //     }
-    //     else {
-    //         console.log('file name is valid, but not found');
-    //     }
-    // }
     return args;
 }
 function fileParse(file) {
@@ -244,7 +218,6 @@ function dirParse(dir) {
     else {
         console.error('Error: chosen directory doesnt contains any files');
     }
-    //console.log(fs.readdirSync(dir));
     console.log(args);
     return args;
 }
@@ -257,37 +230,44 @@ function maskParse(mask) {
     }
     return args;
 }
-//function dirParse(dir: string): string[] { 
-//     // // let args: string[] = fs.readdirSync(dir).filter(el => {
-//     // //     if (fs.lstatSync(dir + '/' + el).isFile()) {
-//     // //         console.log(dir + '/' + el);
-//     // //         return dir + '/' + el;
-//     // //     }
-//     // // });
-//     // // for (let i = 0; i < args.length; i++) {
-//     // //     args[i] = fileParse(args[i]);
-//     // // }
-//     // let realPath = fs.realpathSync(dir); //problem /notes!!!!!!
-//     // console.log('realpath' + realPath);
-//     // if (fs.existsSync(dir)) {
-//     //     //console.log(fs.lstatSync(dir));
-//     // }
-//     // let args: string[] = fs.readdirSync(dir).filter(el => {
-//     //     if (fs.lstatSync(el).isFile)
-//     //     {
-//     //         return el;
-//     //     }
-//     // }).map(file => {
-//     //     return path.format({
-//     //         dir: realPath, // problem still here
-//     //         base: file
-//     //     });
-//     // });
-//     // console.log(args);
-//     // for (let i = 0; i < args.length; i++) {
-//     //     console.log('LOOKATME!!! '+args[i]);
-//     //     args[i] = fileParse(args[i]);
-//     // }
-//     return args;
-// }
+function expandFilenames(args) {
+    for (let i = 0; i < args.length; i++) {
+        let arg = args[i];
+        if (arg.startsWith('\'')) {
+            return null;
+        }
+        else if (arg.includes('/')) {
+            if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
+                arg = fs.realpathSync(arg);
+                let args = fs.readdirSync(arg);
+                for (let i = 0; i < args.length; i++) {
+                    args[i] = arg + '\\' + args[i];
+                }
+                args = args.filter(el => {
+                    if (fs.lstatSync(el).isFile()) {
+                        return el;
+                    }
+                });
+                return args;
+            }
+        }
+        else if (arg.includes('*')) {
+            let args = glob.sync(arg, { nodir: true });
+            return args;
+        }
+        else if (arg.includes('.') && fs.existsSync(arg)) {
+            if (fs.lstatSync(arg).isFile()) {
+                return args;
+            }
+            else {
+                console.error('file not found');
+                process.exit(-1);
+            }
+        }
+        else {
+            console.error('file not found');
+            process.exit(-1);
+        }
+    }
+}
 //# sourceMappingURL=argumentsParse.js.map

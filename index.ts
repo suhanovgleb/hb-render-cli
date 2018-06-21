@@ -8,7 +8,7 @@ import * as ap from './argumentsParse';
 import * as glob from 'glob';
 
 const optionDefinitions: OptionDefinition[] = [
-    { name: 'input', alias: 'i', lazyMultiple: true, type: String },
+    { name: 'input', alias: 'i', multiple: true, type: String },
     { name: 'output', alias: 'o', multiple: true, type: String },
     { name: 'data', alias: 'd', multiple: true, type: String },
     { name: 'force', alias: 'f', defaultValue: false, type: Boolean}

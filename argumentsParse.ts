@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import * as path from 'path';
 import * as glob from 'glob';
 
 export function parseArgs(input: string[], output: string[], data: string[], force: boolean) {
@@ -15,27 +14,82 @@ export function parseArgs(input: string[], output: string[], data: string[], for
         process.exit(-2);
     }
 
+    const inputInitial = input;
+    const outputInitial = output;
+    const dataInitial = data;
+
     console.log('initial args: ' + [...arguments]);
 
     input = expandArgs(input);
     console.log('expanded input: ' + input);
 
-    if (output != undefined && output.length != 0) {
-        output = expandArgs(output, true, force);
-        console.log('expanded output: ' + output);
-    }
-
-    //data = expandArgs(data);
+    data = expandArgs(data);
     console.log('expanded data: ' + data);
 
-    if (input.length != data.length) {
-
+    if (output == undefined || output.length == 0) {
+        // TODO
     }
     else {
-        if (output.length < input.length) {
+        output = expandArgs(output, true, force);
+        console.log('expanded output: ' + output);
 
+
+        if (input.length == 1) {
+            if (data.length == 1) {
+                if (output.length == 1) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+            else {
+                if (data.length == output.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+        }
+        else {
+            if (data.length == 1) {
+                if (input.length == output.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
+            else {
+                if (output.length == data.length) {
+                    // ok
+                }
+                else {
+                    console.error('RRRRRRRRRR');
+                    process.exit();
+                }
+            }
         }
     }
+    //TODO: check if output suits input or data
+
+    // if (input.length != data.length) {
+    //     if (input.length > data.length) {
+            
+    //     }
+    //     else {
+
+    //     }
+    // }
+    // else {
+    //     if (output.length < input.length) {
+
+    //     }
+    // }
 };
 
 function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean = false): string[] {
@@ -201,4 +255,52 @@ function maskParse(mask: string): string[] {
         console.log(args[i]);
     }
     return args;
+}
+
+function expandFilenames(args: string[]): string[] {
+        for (let i = 0; i < args.length; i++) {
+            let arg: string = args[i];
+
+            if (arg.startsWith('\'')) {
+                return null;
+            }
+            else if (arg.includes('/')) {
+                if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
+
+                    arg = fs.realpathSync(arg);
+                    
+                    let args = fs.readdirSync(arg);
+                    for (let i = 0; i < args.length; i++) {
+                        args[i] = arg + '\\' + args[i];
+                    }
+
+                    args = args.filter(el => {
+                        if (fs.lstatSync(el).isFile()) {
+                            return el;
+                        }
+                    });
+
+                    return args;
+                }
+            }
+            else if (arg.includes('*')) {
+                let args: string[] = glob.sync(arg, { nodir: true });
+                return args;
+            }
+            else if (arg.includes('.') && fs.existsSync(arg)) {
+                if (fs.lstatSync(arg).isFile()) {
+                    
+                    return args;
+                }
+                else {
+                    console.error('file not found')
+                    process.exit(-1);
+                }
+            }
+            else {
+                console.error('file not found');
+                process.exit(-1);
+            }
+        }
+
 }
