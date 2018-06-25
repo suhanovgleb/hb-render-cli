@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
 
-export function parseArgs(input: string[], output: string[], data: string[], force: boolean) {
+export function parseArgs(input: string[], output: string[], data: string[]) {
     //do we have an input?
     if ((input == undefined) || (input.length == 0)) {
         console.error('Error: Input (-i) is missed.');
@@ -14,42 +14,98 @@ export function parseArgs(input: string[], output: string[], data: string[], for
         process.exit(-2);
     }
 
-    const inputInitial = input;
-    const outputInitial = output;
-    const dataInitial = data;
+    const inputRaw = input.slice(0);
+    const outputRaw = output.slice(0);
+    const dataRaw = data.slice(0);
 
-    console.log('initial args: ' + [...arguments]);
+    //console.log('initial args: ' + [...arguments]);
 
     input = expandArgs(input);
-    console.log('expanded input: ' + input);
+    //console.log('expanded input: ' + input);
 
     data = expandArgs(data);
-    console.log('expanded data: ' + data);
+    //console.log('expanded data: ' + data);
 
     if (output == undefined || output.length == 0) {
-        // TODO
+        
+        if (input.length == 1) {
+            if (data.length == 1) {
+                output = expandFilenames(inputRaw.slice(0));
+                if (output == null) {
+                    output = expandFilenames(dataRaw.slice(0));
+                    if (output == null) {
+                        output = generateOutputNames(input.length);
+                    }
+                }
+                for (let i = 0; i < output.length; i++) {
+                    output[i] = output[i] + '.hbs';
+                }               
+                
+            }
+            else {
+                output = expandFilenames(dataRaw.slice(0));
+                if (output == null) {
+                    output = generateOutputNames(data.length);
+                }
+                for (let i = 0; i < output.length; i++) {
+                    output[i] = output[i] + '.hbs';
+                }
+                putArgInAll(input, output.length);
+            }
+        }
+        else {
+            if (data.length == 1) {
+                output = expandFilenames(inputRaw.slice(0));
+                if (output == null) {
+                    output = generateOutputNames(input.length);
+                }
+                for (let i = 0; i < output.length; i++) {
+                    output[i] = output[i] + '.hbs';
+                }
+                putArgInAll(data, output.length);
+            }
+            else if (input.length == data.length) {
+                output = expandFilenames(inputRaw.slice(0));
+                if (output == null) {
+                    output = expandFilenames(dataRaw.slice(0));
+                    if (output == null) {
+                        output = generateOutputNames(input.length);
+                    }
+                }
+                for (let i = 0; i < output.length; i++) {
+                    output[i] = output[i] + '.hbs';
+                }
+            }
+            else {
+                console.error('Error: The number of arguments does not match any of the patterns.');
+                process.exit();
+            }
+        }
+
     }
     else {
-        output = expandArgs(output, true, force);
-        console.log('expanded output: ' + output);
+        output = expandArgs(output, true);
+        //console.log('expanded output: ' + output);
 
 
         if (input.length == 1) {
             if (data.length == 1) {
                 if (output.length == 1) {
                     // ok
+                    
                 }
                 else {
-                    console.error('RRRRRRRRRR');
+                    console.error('Error: The number of arguments does not match any of the patterns.');
                     process.exit();
                 }
             }
             else {
                 if (data.length == output.length) {
                     // ok
+                    
                 }
                 else {
-                    console.error('RRRRRRRRRR');
+                    console.error('Error: The number of arguments does not match any of the patterns.');
                     process.exit();
                 }
             }
@@ -58,41 +114,30 @@ export function parseArgs(input: string[], output: string[], data: string[], for
             if (data.length == 1) {
                 if (input.length == output.length) {
                     // ok
+                    
                 }
                 else {
-                    console.error('RRRRRRRRRR');
+                    console.error('Error: The number of arguments does not match any of the patterns.');
                     process.exit();
                 }
             }
             else {
                 if (output.length == data.length) {
                     // ok
+                    
                 }
                 else {
-                    console.error('RRRRRRRRRR');
+                    console.error('Error: The number of arguments does not match any of the patterns.');
                     process.exit();
                 }
             }
         }
     }
-    //TODO: check if output suits input or data
 
-    // if (input.length != data.length) {
-    //     if (input.length > data.length) {
-            
-    //     }
-    //     else {
+    return {input: input, output: output, data: data};
+}
 
-    //     }
-    // }
-    // else {
-    //     if (output.length < input.length) {
-
-    //     }
-    // }
-};
-
-function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean = false): string[] {
+function expandArgs(args: string[], isOutput: boolean = false): string[] {
     let typeCheck: string;
 
     if (!isOutput) {
@@ -108,13 +153,13 @@ function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean 
                     process.exit(-6);
                 }
 
-                console.log('it is a string');
-                console.log('string: ' + arg);
+                //console.log('it is a string');
+                //console.log('string: ' + arg);
                 args[i] = arg;
             }
             else if (arg.includes('/')) {
                 if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
-                    console.log('it is a directory');
+                    //console.log('it is a directory');
                     //console.log('dir: ' + arg);
                     
                     args = dirParse(arg);
@@ -127,8 +172,8 @@ function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean 
             }
             else if (arg.includes('*')) {
                 if (glob.sync(arg, { nodir: true }).length != 0) {
-                    console.log('its mask');
-                    args = maskParse(arg);
+                    //console.log('its mask');
+                    args = maskParse(arg).slice(0);
                     return args;
                 }
                 else {
@@ -146,8 +191,8 @@ function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean 
                         process.exit(-3);
                     }
 
-                    console.log('it is file');
-                    console.log('file: ' + arg);
+                    //console.log('it is file');
+                    //console.log('file: ' + arg);
 
                     args[i] = fileParse(arg);
                 }
@@ -177,7 +222,7 @@ function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean 
                         process.exit(-4);
                     }
 
-                    console.log('it is a directory');
+                    //console.log('it is a directory');
                     //console.log('dir: ' + arg);
 
                     args = dirParse(arg);
@@ -198,8 +243,8 @@ function expandArgs(args: string[], isOutput: boolean = false, isForce: boolean 
                         process.exit(-3);
                     }
 
-                    console.log('it is file');
-                    console.log('file: ' + arg);
+                    //console.log('it is file');
+                    //console.log('file: ' + arg);
 
                     args[i] = fileParse(arg);
                 }
@@ -224,7 +269,7 @@ function fileParse(file: string): string {
 
 function dirParse(dir: string): string[] { 
     dir = fs.realpathSync(dir);
-    console.log(dir);
+    //console.log(dir);
     let args = fs.readdirSync(dir);
     for (let i = 0; i < args.length; i++) {
         args[i] = dir + '\\' + args[i];
@@ -235,7 +280,7 @@ function dirParse(dir: string): string[] {
                 return el;
             }
         });
-        console.log(args);
+        //console.log(args);
         for (let i = 0; i < args.length; i++) {
             args[i] = fs.readFileSync(args[i]).toString();
         }
@@ -243,64 +288,79 @@ function dirParse(dir: string): string[] {
     else {
         console.error('Error: chosen directory doesnt contains any files');
     }
-    console.log(args);
+    //console.log(args);
     return args;
 }
 
 function maskParse(mask: string): string[] {
     let args: string[] = glob.sync(mask, { nodir: true });
-    console.log(args);
+    //console.log(args);
     for (let i = 0; i < args.length; i++) {
         args[i] = fileParse(args[i]);
-        console.log(args[i]);
+        //console.log(args[i]);
     }
     return args;
 }
 
 function expandFilenames(args: string[]): string[] {
-        for (let i = 0; i < args.length; i++) {
-            let arg: string = args[i];
 
-            if (arg.startsWith('\'')) {
-                return null;
-            }
-            else if (arg.includes('/')) {
-                if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
+    for (let i = 0; i < args.length; i++) {
+        let arg: string = args[i];
 
-                    arg = fs.realpathSync(arg);
-                    
-                    let args = fs.readdirSync(arg);
-                    for (let i = 0; i < args.length; i++) {
-                        args[i] = arg + '\\' + args[i];
-                    }
+        if (arg.startsWith('\'')) {
+            return null;
+        }
+        else if (arg.includes('/')) {
+            if (fs.existsSync(arg) && fs.lstatSync(arg).isDirectory()) {
 
-                    args = args.filter(el => {
-                        if (fs.lstatSync(el).isFile()) {
-                            return el;
-                        }
-                    });
+                arg = fs.realpathSync(arg);
 
-                    return args;
+                let args = fs.readdirSync(arg);
+                for (let i = 0; i < args.length; i++) {
+                    args[i] = arg + '\\' + args[i];
                 }
-            }
-            else if (arg.includes('*')) {
-                let args: string[] = glob.sync(arg, { nodir: true });
+
+                args = args.filter(el => {
+                    if (fs.lstatSync(el).isFile()) {
+                        return el;
+                    }
+                });
+
                 return args;
             }
-            else if (arg.includes('.') && fs.existsSync(arg)) {
-                if (fs.lstatSync(arg).isFile()) {
-                    
-                    return args;
-                }
-                else {
-                    console.error('file not found')
-                    process.exit(-1);
-                }
+        }
+        else if (arg.includes('*')) {
+            let args: string[] = glob.sync(arg, { nodir: true });
+            return args;
+        }
+        else if (arg.includes('.') && fs.existsSync(arg)) {
+            if (fs.lstatSync(arg).isFile()) {
+
+                return args;
             }
             else {
-                console.error('file not found');
+                console.error('file not found')
                 process.exit(-1);
             }
         }
+        else {
+            console.error('file not found');
+            process.exit(-1);
+        }
+    }
 
+}
+
+function generateOutputNames(count: number): string[] {
+    let output: string[] = new Array<string>();
+    for (let i = 0; i < count; i++) {
+        output[i] = 'result' + i;
+    }
+    return output;
+}
+
+function putArgInAll(args: string[], count: number) {
+    for (let i = 1; i < count; i++) {
+        args[i] = args[0];
+    }
 }
