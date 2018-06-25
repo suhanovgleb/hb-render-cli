@@ -18,7 +18,14 @@ const optionDefinitions: OptionDefinition[] = [
 ];
 
 function main(){
-    let options = commandLineArgs(optionDefinitions);
+    let options;
+    try {
+        options = commandLineArgs(optionDefinitions);
+    }
+    catch {
+        console.error('Error: Something wrong with the options.');
+        process.exit();
+    }
     if (options.help) { clu.showInfo(); process.exit(); }
     let parsedArgs = ap.parseArgs(options.input, options.output, options.data);
     let input = parsedArgs.input;

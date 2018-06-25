@@ -13,7 +13,14 @@ const optionDefinitions = [
     { name: 'help', alias: 'h', defaultValue: false, type: Boolean }
 ];
 function main() {
-    let options = commandLineArgs(optionDefinitions);
+    let options;
+    try {
+        options = commandLineArgs(optionDefinitions);
+    }
+    catch (_a) {
+        console.error('Error: Something wrong with the options.');
+        process.exit();
+    }
     if (options.help) {
         clu.showInfo();
         process.exit();
